@@ -1,22 +1,29 @@
 package handler
 
 import (
+	linkService "elkeamanan/shortina/internal/link/service"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	router *mux.Router
+	router      *mux.Router
+	linkService linkService.LinkService
 }
 
-func NewServer(muxServer *mux.Router) *Server {
+func NewServer(muxServer *mux.Router, linkService linkService.LinkService) *Server {
 	s := &Server{
-		router: muxServer,
+		router:      muxServer,
+		linkService: linkService,
 	}
+
+	s.router.Use(enableCORS)
 	s.router.Use(logRequest)
 
 	s.router.HandleFunc("/", s.handlerHelloWorld).Methods("GET")
+	s.router.HandleFunc("/link", s.handlerStoreLink).Methods("POST")
+	s.router.HandleFunc("/link/{key}", s.handlerGetLinkRedirection).Methods("GET")
 
 	return s
 }

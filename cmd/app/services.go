@@ -1,8 +1,14 @@
 package app
 
+import "elkeamanan/shortina/internal/link/service"
+
 type ServiceContainer struct {
+	LinkService service.LinkService
 }
 
 func InitServices(repositories *RepositoryContainer) (ServiceContainer, error) {
-	return ServiceContainer{}, nil
+	linkService := service.NewLinkService(repositories.LinkRepostitory)
+	return ServiceContainer{
+		LinkService: linkService,
+	}, nil
 }

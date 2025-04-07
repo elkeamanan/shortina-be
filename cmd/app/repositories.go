@@ -4,13 +4,15 @@ import (
 	"context"
 	"elkeamanan/shortina/cmd/storage"
 	"elkeamanan/shortina/config"
+	linkRepository "elkeamanan/shortina/internal/link/repository"
 )
 
 type RepositoryContainer struct {
+	LinkRepostitory linkRepository.LinkRepository
 }
 
 func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
-	_, err := storage.InitDatabase(ctx, storage.DatabaseConfig{
+	st, err := storage.InitDatabase(ctx, storage.DatabaseConfig{
 		Host:        config.Cfg.Database.Host,
 		Port:        config.Cfg.Database.Port,
 		DBName:      config.Cfg.Database.DBName,
@@ -26,5 +28,8 @@ func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
 		return nil, err
 	}
 
-	return &RepositoryContainer{}, nil
+	linkRepo := linkRepository.NewLinkRepository(st)
+	return &RepositoryContainer{
+		LinkRepostitory: linkRepo,
+	}, nil
 }
