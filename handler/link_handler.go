@@ -23,6 +23,7 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 	err = s.linkService.StoreLink(ctx, req)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to store link with err: %s", err.Error()), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -33,11 +34,18 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handlerGetLinkRedirection(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	vars := mux.Vars(r)
+	key := vars["key"]
 	messages, err := s.linkService.GetLinkRedirection(ctx, &linkDomain.GetLinkRedirectionRequest{
-		Key: vars["key"],
+		Key: key,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if messages == nil {
+		http.Error(w, fmt.Sprintf("message is not found with identifier %s", key), http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
