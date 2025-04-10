@@ -18,11 +18,11 @@ func NewServer(muxServer *mux.Router, linkService linkService.LinkService) *Serv
 		linkService: linkService,
 	}
 
-	s.router.Use(enableCORS)
 	s.router.Use(logRequest)
+	s.router.Use(enableCORS)
 
 	s.router.HandleFunc("/", s.handlerHelloWorld).Methods("GET")
-	s.router.HandleFunc("/link", s.handlerStoreLink).Methods("POST")
+	s.router.HandleFunc("/link", s.handlerStoreLink).Methods("POST", "OPTIONS")
 	s.router.HandleFunc("/link/{key}", s.handlerGetLinkRedirection).Methods("GET")
 
 	return s
