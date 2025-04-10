@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"net/url"
 
 	"github.com/google/uuid"
 )
@@ -22,6 +23,11 @@ func (req *StoreLinkRequest) Validate() error {
 
 	if req.Redirection == "" {
 		return errors.New("cannot store link without redirection")
+	}
+
+	_, err := url.ParseRequestURI(req.Redirection)
+	if err != nil {
+		return errors.New("redirection data is not a valid")
 	}
 
 	return nil
