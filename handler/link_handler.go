@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	linkDomain "elkeamanan/shortina/internal/link/domain"
 	"encoding/json"
 	"fmt"
@@ -11,7 +10,7 @@ import (
 )
 
 func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 
 	req := &linkDomain.StoreLinkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -32,7 +31,7 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handlerGetLinkRedirection(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
 	vars := mux.Vars(r)
 	key := vars["key"]
 	messages, err := s.linkService.GetLinkRedirection(ctx, &linkDomain.GetLinkRedirectionRequest{
