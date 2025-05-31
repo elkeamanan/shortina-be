@@ -39,7 +39,18 @@ type Config struct {
 		PingTimeout time.Duration `env:"DB_TIMEOUT" envDefault:"5s"`
 		Migration   struct {
 			RunMigration bool   `env:"DB_RUN_MIGRATION" envDefault:"true"`
-			Path         string `env:"DB_MIGRATION_PATH" envDefault:""`
+			Path         string `env:"DB_MIGRATION_PATH" envDefault:"/cmd/storage/migrations"`
 		}
+	}
+
+	Redis struct {
+		Host string `env:"REDIS_HOST" envDefault:"localhost"`
+		Port int    `env:"REDIS_PORT" envDefault:"6379"`
+	}
+
+	Token struct {
+		SecretKey          string        `env:"TOKEN_SECRET_KEY" envDefault:"gomugomuno"`
+		AccessTokenExpiry  time.Duration `env:"ACCESS_TOKEN_EXPIRY" envDefault:"15m"`
+		RefreshTokenExpiry time.Duration `env:"REFRESH_TOKEN_EXPIRY" envDefault:"24h"`
 	}
 }
