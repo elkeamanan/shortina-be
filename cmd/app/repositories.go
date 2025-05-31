@@ -25,6 +25,10 @@ func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
 			RunMigration:   config.Cfg.Database.Migration.RunMigration,
 			MigrationsPath: config.Cfg.Database.Migration.Path,
 		},
+		SSL: postgres.SSLConfig{
+			SSLMode:     config.Cfg.Database.SSL.SSLMode,
+			SSLRootCert: config.Cfg.Database.SSL.SSLRootCert,
+		},
 	})
 	if err != nil {
 		return nil, err

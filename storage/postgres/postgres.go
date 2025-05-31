@@ -22,6 +22,11 @@ type MigrationConfig struct {
 	MigrationsPath string
 }
 
+type SSLConfig struct {
+	SSLMode     string
+	SSLRootCert string
+}
+
 type DatabaseConfig struct {
 	Host            string
 	Port            int
@@ -29,6 +34,7 @@ type DatabaseConfig struct {
 	Username        string
 	Password        string
 	PingTimeout     time.Duration
+	SSL             SSLConfig
 	MigrationConfig MigrationConfig
 }
 
@@ -62,8 +68,14 @@ func InitDatabase(ctx context.Context, conf DatabaseConfig) (CommonRepository, e
 		return nil, err
 	}
 
-	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable",
-		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password))
+	dbConn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s",
+		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password, conf.SSL.SSLMode)
+
+	if conf.SSL.SSLMode != "disabled" {
+		dbConn += fmt.Sprintf(" sslrootcert=%s", conf.SSL.SSLRootCert)
+	}
+
+	db, err := sql.Open("postgres", dbConn)
 	if err != nil {
 		return nil, err
 	}
