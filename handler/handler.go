@@ -24,14 +24,22 @@ func NewServer(muxServer *mux.Router, linkService linkService.LinkService, userS
 	s.router.Use(logRequest)
 	s.router.Use(enableCORS)
 
+	// public APIs
 	s.router.HandleFunc("/", s.handlerHelloWorld).Methods("GET")
-	s.router.HandleFunc("/link", s.handlerStoreLink).Methods("POST", "OPTIONS")
 	s.router.HandleFunc("/link/{key}", s.handlerGetLinkRedirection).Methods("GET")
-
 	s.router.HandleFunc("/users/register", s.handlerRegisterUser).Methods("POST")
 	s.router.HandleFunc("/users/login", s.handlerLoginUser).Methods("POST")
-	s.router.HandleFunc("/users/{id}/update", s.handlerUpdateUser).Methods("PATCH")
 	s.router.HandleFunc("/refresh-token", s.handlerRefreshToken).Methods("GET")
+
+	// optional auth
+	optionalAuthRoutes := s.router.NewRoute().Subrouter()
+	optionalAuthRoutes.Use(optionalAuthVerifier)
+	optionalAuthRoutes.HandleFunc("/link", s.handlerStoreLink).Methods("POST", "OPTIONS")
+
+	// requires auth
+	protectedRoutes := s.router.NewRoute().Subrouter()
+	protectedRoutes.Use(authVerifier)
+	protectedRoutes.HandleFunc("/users/{id}/update", s.handlerUpdateUser).Methods("PATCH")
 
 	return s
 }
