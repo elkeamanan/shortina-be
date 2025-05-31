@@ -15,17 +15,23 @@ type RepositoryContainer struct {
 
 func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
 	st, err := postgres.InitDatabase(ctx, postgres.DatabaseConfig{
-		Host:        config.Cfg.Database.Host,
-		Port:        config.Cfg.Database.Port,
-		DBName:      config.Cfg.Database.DBName,
-		Username:    config.Cfg.Database.Username,
-		Password:    config.Cfg.Database.Password,
-		PingTimeout: config.Cfg.Database.PingTimeout,
+		Host:     config.Cfg.Database.Host,
+		Port:     config.Cfg.Database.Port,
+		DBName:   config.Cfg.Database.DBName,
+		Username: config.Cfg.Database.Username,
+		Password: config.Cfg.Database.Password,
+		ConnectionConfig: postgres.ConnectionConfig{
+			PingTimeout:  config.Cfg.Database.Connection.PingTimeout,
+			MaxIdleTime:  config.Cfg.Database.Connection.MaxIdleTime,
+			MaxLifetime:  config.Cfg.Database.Connection.MaxLifetime,
+			MaxOpenConns: config.Cfg.Database.Connection.MaxOpenConns,
+			MaxIdleConns: config.Cfg.Database.Connection.MaxIdleConns,
+		},
 		MigrationConfig: postgres.MigrationConfig{
 			RunMigration:   config.Cfg.Database.Migration.RunMigration,
 			MigrationsPath: config.Cfg.Database.Migration.Path,
 		},
-		SSL: postgres.SSLConfig{
+		SSLConfig: postgres.SSLConfig{
 			SSLMode:     config.Cfg.Database.SSL.SSLMode,
 			SSLRootCert: config.Cfg.Database.SSL.SSLRootCert,
 		},

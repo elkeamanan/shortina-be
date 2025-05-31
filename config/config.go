@@ -52,14 +52,20 @@ type Config struct {
 	IsEnableLoadingSecret bool `env:"ENABLE_LOADING_SECRET" envDefault:"false"`
 
 	Database struct {
-		Host        string        `env:"DB_HOST" envDefault:"localhost"`
-		Port        int           `env:"DB_PORT" envDefault:"5433"`
-		DBName      string        `env:"DB_NAME" envDefault:"shortina"`
-		Username    string        `env:"DB_USERNAME"`
-		Password    string        `env:"DB_PASSWORD"`
-		PingTimeout time.Duration `env:"DB_TIMEOUT" envDefault:"5s"`
-		SSL         struct {
-			SSLMode     string `env:"DB_SSL_MODE" envDefault:"disabled"`
+		Host       string `env:"DB_HOST" envDefault:"localhost"`
+		Port       int    `env:"DB_PORT" envDefault:"5433"`
+		DBName     string `env:"DB_NAME" envDefault:"shortina"`
+		Username   string `env:"DB_USERNAME"`
+		Password   string `env:"DB_PASSWORD"`
+		Connection struct {
+			PingTimeout  time.Duration `env:"DB_TIMEOUT" envDefault:"5s"`
+			MaxIdleTime  time.Duration `env:"DB_MAX_IDLE_TIME" envDefault:"2m"`
+			MaxLifetime  time.Duration `env:"DB_MAX_LIFETIME" envDefault:"1h"`
+			MaxOpenConns int           `env:"DB_MAX_OPEN_CONNS" envDefault:"10"`
+			MaxIdleConns int           `env:"DB_MAX_IDLE_CONNS" envDefault:"5"`
+		}
+		SSL struct {
+			SSLMode     string `env:"DB_SSL_MODE" envDefault:"disable"`
 			SSLRootCert string `env:"DB_SSL_ROOT_CERT"`
 		}
 		Migration struct {
