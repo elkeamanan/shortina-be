@@ -58,7 +58,11 @@ type Config struct {
 		Username    string        `env:"DB_USERNAME"`
 		Password    string        `env:"DB_PASSWORD"`
 		PingTimeout time.Duration `env:"DB_TIMEOUT" envDefault:"5s"`
-		Migration   struct {
+		SSL         struct {
+			SSLMode     string `env:"DB_SSL_MODE" envDefault:"disabled"`
+			SSLRootCert string `env:"DB_SSL_ROOT_CERT"`
+		}
+		Migration struct {
 			RunMigration bool   `env:"DB_RUN_MIGRATION" envDefault:"true"`
 			Path         string `env:"DB_MIGRATION_PATH" envDefault:"storage/postgres/migrations"`
 		}
