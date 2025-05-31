@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func InitServer(serviceContainer ServiceContainer) error {
+func InitServer(serviceContainer *ServiceContainer) error {
 	server := handler.NewServer(mux.NewRouter(), serviceContainer.LinkService, serviceContainer.UserService)
 
 	port := config.Cfg.HttpPort

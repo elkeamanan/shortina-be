@@ -27,15 +27,23 @@ type SSLConfig struct {
 	SSLRootCert string
 }
 
+type ConnectionConfig struct {
+	PingTimeout  time.Duration
+	MaxIdleTime  time.Duration
+	MaxLifetime  time.Duration
+	MaxOpenConns int
+	MaxIdleConns int
+}
+
 type DatabaseConfig struct {
-	Host            string
-	Port            int
-	DBName          string
-	Username        string
-	Password        string
-	PingTimeout     time.Duration
-	SSL             SSLConfig
-	MigrationConfig MigrationConfig
+	Host     string
+	Port     int
+	DBName   string
+	Username string
+	Password string
+	ConnectionConfig
+	SSLConfig
+	MigrationConfig
 }
 
 func (c DatabaseConfig) Validate() error {
@@ -57,7 +65,16 @@ func (c DatabaseConfig) Validate() error {
 	if c.PingTimeout == time.Duration(0) {
 		return errors.New("database ping timeout is missing")
 	}
-	if c.MigrationConfig.RunMigration && c.MigrationConfig.MigrationsPath == "" {
+	if c.MaxIdleTime == time.Duration(0) {
+		return errors.New("database max idle time is missing")
+	}
+	if c.MaxLifetime == time.Duration(0) {
+		return errors.New("database max lifetime is missing")
+	}
+	if c.SSLMode == "" {
+		return errors.New("ssl mode is required")
+	}
+	if c.RunMigration && c.MigrationsPath == "" {
 		return errors.New("migration config: migrations path is required")
 	}
 	return nil
@@ -69,16 +86,21 @@ func InitDatabase(ctx context.Context, conf DatabaseConfig) (CommonRepository, e
 	}
 
 	dbConn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s",
-		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password, conf.SSL.SSLMode)
+		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password, conf.SSLMode)
 
-	if conf.SSL.SSLMode != "disabled" {
-		dbConn += fmt.Sprintf(" sslrootcert=%s", conf.SSL.SSLRootCert)
+	if conf.SSLMode != "disabled" {
+		dbConn += fmt.Sprintf(" sslrootcert=%s", conf.SSLRootCert)
 	}
 
 	db, err := sql.Open("postgres", dbConn)
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetMaxIdleConns(conf.MaxIdleConns)
+	db.SetMaxOpenConns(conf.MaxOpenConns)
+	db.SetConnMaxIdleTime(conf.MaxIdleTime)
+	db.SetConnMaxLifetime(conf.MaxLifetime)
 
 	ctx, cancel := context.WithTimeout(ctx, conf.PingTimeout)
 	defer cancel()

@@ -18,14 +18,19 @@ type redisClient struct {
 	client *redis.Client
 }
 
-func NewRedisClient() RedisClient {
+func NewRedisClient() (RedisClient, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%s:%d", config.Cfg.Redis.Host, config.Cfg.Redis.Port),
 	})
 
+	err := rdb.Ping(context.Background()).Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return &redisClient{
 		client: rdb,
-	}
+	}, nil
 }
 
 func (r *redisClient) Get(ctx context.Context, key string) (string, error) {

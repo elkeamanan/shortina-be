@@ -11,12 +11,15 @@ type ServiceContainer struct {
 	UserService userService.UserService
 }
 
-func InitServices(repositories *RepositoryContainer) (ServiceContainer, error) {
-	redisClient := redis.NewRedisClient()
+func InitServices(repositories *RepositoryContainer) (*ServiceContainer, error) {
+	redisClient, err := redis.NewRedisClient()
+	if err != nil {
+		return nil, err
+	}
 
 	linkService := linkService.NewLinkService(repositories.LinkRepository)
 	userService := userService.NewUserService(repositories.UserRepository, redisClient)
-	return ServiceContainer{
+	return &ServiceContainer{
 		LinkService: linkService,
 		UserService: userService,
 	}, nil
