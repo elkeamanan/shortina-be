@@ -26,7 +26,7 @@ func NewServer(muxServer *mux.Router, linkService linkService.LinkService, userS
 
 	// public APIs
 	s.router.HandleFunc("/", s.handlerHelloWorld).Methods("GET")
-	s.router.HandleFunc("/links/{key}", s.handlerGetLinkRedirection).Methods("GET")
+	s.router.HandleFunc("/links/{key}/redirection", s.handlerGetLinkRedirection).Methods("GET")
 	s.router.HandleFunc("/users/register", s.handlerRegisterUser).Methods("POST")
 	s.router.HandleFunc("/users/login", s.handlerLoginUser).Methods("POST")
 	s.router.HandleFunc("/refresh-token", s.handlerRefreshToken).Methods("GET")
@@ -39,7 +39,10 @@ func NewServer(muxServer *mux.Router, linkService linkService.LinkService, userS
 	// requires auth
 	protectedRoutes := s.router.NewRoute().Subrouter()
 	protectedRoutes.Use(authVerifier)
-	protectedRoutes.HandleFunc("/users/{id}/update", s.handlerUpdateUser).Methods("PATCH")
+	protectedRoutes.HandleFunc("/users/{id}", s.handlerUpdateUser).Methods("PATCH")
+	protectedRoutes.HandleFunc("/links", s.handlerGetLinks).Methods("GET")
+	protectedRoutes.HandleFunc("/links/{id}", s.handlerGetLink).Methods("GET")
+	protectedRoutes.HandleFunc("/links/{id}", s.handlerUpdateLink).Methods("PATCH")
 
 	return s
 }

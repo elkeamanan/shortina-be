@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"elkeamanan/shortina/util"
 	"errors"
 
 	"github.com/google/uuid"
@@ -55,4 +56,19 @@ func (req *GetLinkRedirectionRequest) Validate() error {
 
 type GetLinkRedirectionResponse struct {
 	Redirection string `json:"redirection"`
+}
+
+type GetLinkResponse struct {
+	Link *Link `json:"link"`
+}
+
+type GetLinksResponse struct {
+	Pagination *util.PaginationResponse `json:"pagination"`
+	Links      []*Link                  `json:"links"`
+}
+
+type UpdateLinkRequest struct {
+	Key         string     `json:"key"`
+	Redirection string     `json:"redirection"`
+	Status      LinkStatus `json:"status"`
 }

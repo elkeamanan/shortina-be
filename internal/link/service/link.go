@@ -4,6 +4,8 @@ import (
 	"context"
 	linkDomain "elkeamanan/shortina/internal/link/domain"
 	"elkeamanan/shortina/internal/link/repository"
+	"elkeamanan/shortina/util"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -24,20 +26,33 @@ func (s *linkService) StoreLink(ctx context.Context, request *linkDomain.StoreLi
 	return s.linkRepository.StoreLink(ctx, request.ToNewLink(actor))
 }
 
-func (s *linkService) GetLinkRedirection(ctx context.Context, request *linkDomain.GetLinkRedirectionRequest) (*linkDomain.GetLinkRedirectionResponse, error) {
-	if err := request.Validate(); err != nil {
-		return nil, err
+func (s *linkService) GetLinkRedirection(ctx context.Context, key string) (string, error) {
+	if key == "" {
+		return "", errors.New("key is required")
 	}
-	redirection, err := s.linkRepository.GetLinkRedirection(ctx, request.Key)
+
+	return s.linkRepository.GetLinkRedirection(ctx, key)
+}
+
+func (s *linkService) GetLink(ctx context.Context, pred linkDomain.LinkPredicate) (*linkDomain.Link, error) {
+	return s.linkRepository.GetLink(ctx, pred)
+}
+
+func (s *linkService) GetPaginatedLinks(ctx context.Context, pred linkDomain.LinkPredicate, paginationParam util.PaginationParam) ([]*linkDomain.Link, *util.PaginationResponse, error) {
+	links, err := s.linkRepository.GetLinks(ctx, pred, &paginationParam)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if redirection == "" {
-		return nil, nil
+	count, err := s.linkRepository.CountLinks(ctx, pred)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return &linkDomain.GetLinkRedirectionResponse{
-		Redirection: redirection,
-	}, nil
+	paginationResponse := util.GeneratePaginationResponse(paginationParam.PageSize, paginationParam.CurrentPage, count)
+	return links, &paginationResponse, nil
+}
+
+func (s *linkService) UpdateLink(ctx context.Context, link *linkDomain.Link, pred linkDomain.LinkPredicate) error {
+	return s.linkRepository.UpdateLink(ctx, link, pred)
 }

@@ -5,6 +5,7 @@ import (
 	"elkeamanan/shortina/util"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 )
 
@@ -95,4 +96,51 @@ func GetInsertLinkValues(link *Link) []any {
 		link.Status,
 		createdBy,
 	}
+}
+
+func GetUpdateLinkMap(link *Link) map[string]any {
+	result := map[string]any{}
+
+	if link.Key != "" {
+		result[ColumnLinkKey] = link.Key
+	}
+
+	if link.Redirection != "" {
+		result[ColumnLinkRedirection] = link.Redirection
+	}
+
+	if link.Status != "" && link.Status != LinkStatusUnspecified {
+		result[ColumnLinkStatus] = link.Status
+	}
+
+	return result
+}
+
+type LinkPredicate struct {
+	ID     string
+	Key    string
+	UserID string
+	Status LinkStatus
+}
+
+func (p LinkPredicate) ToWherePredicate() sq.Sqlizer {
+	result := sq.And{}
+
+	if p.ID != "" {
+		result = append(result, sq.Eq{ColumnLinkID: p.ID})
+	}
+
+	if p.Key != "" {
+		result = append(result, sq.Eq{ColumnLinkKey: p.Key})
+	}
+
+	if p.UserID != "" {
+		result = append(result, sq.Eq{ColumnLinkCreatedBy: p.UserID})
+	}
+
+	if p.Status != "" && p.Status != LinkStatusUnspecified {
+		result = append(result, sq.Eq{ColumnLinkStatus: p.Status})
+	}
+
+	return result
 }
