@@ -3,13 +3,13 @@ package app
 import (
 	"context"
 	"elkeamanan/shortina/config"
-	"elkeamanan/shortina/util/logger"
+	"elkeamanan/shortina/util"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func Run() int {
-	logger.Initialize()
+	util.InitializeLogger()
 	ctx := context.Background()
 	config.LoadConfig(ctx)
 

@@ -3,16 +3,16 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"elkeamanan/shortina/cmd/storage"
 	"elkeamanan/shortina/internal/user/domain"
-	sqlUtil "elkeamanan/shortina/util/sql"
+	"elkeamanan/shortina/storage/postgres"
+	"elkeamanan/shortina/util"
 )
 
 type userRepository struct {
-	storage.CommonRepository
+	postgres.CommonRepository
 }
 
-func NewUserRepository(st storage.CommonRepository) UserRepository {
+func NewUserRepository(st postgres.CommonRepository) UserRepository {
 	return &userRepository{CommonRepository: st}
 }
 
@@ -26,7 +26,7 @@ func (r *userRepository) CreateUser(ctx context.Context, tx *sql.Tx, user *domai
 
 func (r *userRepository) GetUsers(ctx context.Context, pred domain.UserPredicate) ([]*domain.User, error) {
 	rows, err := r.CreateBuilder(nil).
-		Select(domain.GetUsersColumns(sqlUtil.SelectOperation)...).
+		Select(domain.GetUsersColumns(util.SelectOperation)...).
 		From(domain.TableUsers).
 		Where(pred.ToWherePredicate()).QueryContext(ctx)
 

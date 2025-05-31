@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"elkeamanan/shortina/util/sql"
+	"elkeamanan/shortina/util"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -39,7 +39,7 @@ var (
 )
 
 var (
-	ColumnsUsers map[sql.Operation][]string
+	ColumnsUsers map[util.SQLOperation][]string
 )
 
 func init() {
@@ -53,15 +53,15 @@ func init() {
 		ColumnUsersUpdatedAt,
 	}
 
-	ColumnsUsers = make(map[sql.Operation][]string)
+	ColumnsUsers = make(map[util.SQLOperation][]string)
 
-	for _, op := range []sql.Operation{sql.InsertOperation, sql.SelectOperation, sql.JoinOperation, sql.UpdateOperation} {
+	for _, op := range []util.SQLOperation{util.InsertOperation, util.SelectOperation, util.JoinOperation, util.UpdateOperation} {
 		switch op {
-		case sql.InsertOperation:
+		case util.InsertOperation:
 			ColumnsUsers[op] = TableColumns[:len(TableColumns)-2]
-		case sql.SelectOperation:
+		case util.SelectOperation:
 			ColumnsUsers[op] = TableColumns
-		case sql.JoinOperation:
+		case util.JoinOperation:
 			for _, column := range TableColumns {
 				ColumnsUsers[op] = append(ColumnsUsers[op], TableUsers+"."+column)
 			}
@@ -71,7 +71,7 @@ func init() {
 	}
 }
 
-func GetUsersColumns(op sql.Operation) []string {
+func GetUsersColumns(op util.SQLOperation) []string {
 	return ColumnsUsers[op]
 }
 
