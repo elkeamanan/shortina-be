@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"elkeamanan/shortina/util/sql"
+	"elkeamanan/shortina/util"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,7 +26,7 @@ var (
 )
 
 var (
-	ColumnsLink map[sql.Operation][]string
+	ColumnsLink map[util.SQLOperation][]string
 )
 
 func init() {
@@ -38,15 +38,15 @@ func init() {
 		ColumnLinkUpdatedAt,
 	}
 
-	ColumnsLink = make(map[sql.Operation][]string)
+	ColumnsLink = make(map[util.SQLOperation][]string)
 
-	for _, op := range []sql.Operation{sql.InsertOperation, sql.SelectOperation, sql.JoinOperation, sql.UpdateOperation} {
+	for _, op := range []util.SQLOperation{util.InsertOperation, util.SelectOperation, util.JoinOperation, util.UpdateOperation} {
 		switch op {
-		case sql.InsertOperation:
+		case util.InsertOperation:
 			ColumnsLink[op] = TableColumns[:len(TableColumns)-2]
-		case sql.SelectOperation:
+		case util.SelectOperation:
 			ColumnsLink[op] = TableColumns
-		case sql.JoinOperation:
+		case util.JoinOperation:
 			for _, column := range TableColumns {
 				ColumnsLink[op] = append(ColumnsLink[op], TableLink+"."+column)
 			}
@@ -56,7 +56,7 @@ func init() {
 	}
 }
 
-func GetLinkColumns(op sql.Operation) []string {
+func GetLinkColumns(op util.SQLOperation) []string {
 	return ColumnsLink[op]
 }
 

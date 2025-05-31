@@ -3,26 +3,25 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"elkeamanan/shortina/cmd/storage"
 	"elkeamanan/shortina/internal/link/domain"
-
-	utilSQL "elkeamanan/shortina/util/sql"
+	"elkeamanan/shortina/storage/postgres"
+	"elkeamanan/shortina/util"
 
 	sq "github.com/Masterminds/squirrel"
 )
 
 type linkRepository struct {
-	storage.CommonRepository
+	postgres.CommonRepository
 }
 
-func NewLinkRepository(st storage.CommonRepository) LinkRepository {
+func NewLinkRepository(st postgres.CommonRepository) LinkRepository {
 	return &linkRepository{CommonRepository: st}
 }
 
 func (r *linkRepository) StoreLink(ctx context.Context, msg *domain.Link) error {
 	_, err := r.CreateBuilder(nil).
 		Insert(domain.TableLink).
-		Columns(domain.GetLinkColumns(utilSQL.InsertOperation)...).
+		Columns(domain.GetLinkColumns(util.InsertOperation)...).
 		Values(domain.GetInsertLinkValues(msg)...).
 		ExecContext(ctx)
 	return err

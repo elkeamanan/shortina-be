@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	"elkeamanan/shortina/cmd/storage"
 	linkDomain "elkeamanan/shortina/internal/link/domain"
+	"elkeamanan/shortina/storage/postgres"
 )
 
 type LinkRepository interface {
-	storage.CommonRepository
+	postgres.CommonRepository
 	StoreLink(ctx context.Context, link *linkDomain.Link) error
 	GetLinkRedirection(ctx context.Context, key string) (string, error)
 }

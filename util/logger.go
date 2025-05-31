@@ -1,4 +1,4 @@
-package logger
+package util
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Initialize() {
+func InitializeLogger() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 }

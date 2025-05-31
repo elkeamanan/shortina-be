@@ -1,9 +1,9 @@
-package sql
+package util
 
-type Operation int
+type SQLOperation int
 
 const (
-	SelectOperation Operation = iota
+	SelectOperation SQLOperation = iota
 	JoinOperation
 	InsertOperation
 	UpdateOperation
