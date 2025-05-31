@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"elkeamanan/shortina/provider/secret"
 	"time"
 
 	"github.com/caarlos0/env/v7"
@@ -11,24 +12,44 @@ import (
 
 var Cfg Config
 
-func LoadConfig(ctx context.Context) {
+func LoadConfig(ctx context.Context) error {
 	if err := godotenv.Load(); err != nil {
 		log.Error(err.Error())
 	}
 
 	err := env.Parse(&Cfg)
 	if err != nil {
-		log.Error(err.Error())
+		return err
 	}
+
+	if !Cfg.IsEnableLoadingSecret {
+		return nil
+	}
+
+	manager, err := secret.NewAWSSecretsManager(ctx, Cfg.Region)
+	if err != nil {
+		return err
+	}
+
+	err = secret.LoadValueFromSecret(ctx, manager, &Cfg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 type Config struct {
 	Environment string `env:"ENVIRONMENT,required"`
+	Region      string `env:"SERVICE_REGION,required"`
 	ServiceName string `env:"SERVICE_NAME" envDefault:""`
 	Timezone    string `env:"TIMEZONE,required" envDefault:"Asia/Jakarta"`
 
 	HttpPort int    `env:"API_PORT" envDefault:"8080"`
 	Host     string `env:"GRPC_HOST" envDefault:"localhost"`
+
+	IsEnableLoadingSecret bool `env:"ENABLE_LOADING_SECRET" envDefault:"false"`
 
 	Database struct {
 		Host        string        `env:"DB_HOST" envDefault:"localhost"`
@@ -49,7 +70,7 @@ type Config struct {
 	}
 
 	Token struct {
-		SecretKey          string        `env:"TOKEN_SECRET_KEY" envDefault:"gomugomuno"`
+		SecretKey          string        `env:"TOKEN_SECRET_KEY" secret:"SHORTINA_TOKEN_SECRET_KEY"`
 		AccessTokenExpiry  time.Duration `env:"ACCESS_TOKEN_EXPIRY" envDefault:"15m"`
 		RefreshTokenExpiry time.Duration `env:"REFRESH_TOKEN_EXPIRY" envDefault:"24h"`
 	}
