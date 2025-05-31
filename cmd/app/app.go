@@ -11,7 +11,11 @@ import (
 func Run() int {
 	util.InitializeLogger()
 	ctx := context.Background()
-	config.LoadConfig(ctx)
+	err := config.LoadConfig(ctx)
+	if err != nil {
+		log.Error(err.Error())
+		return 1
+	}
 
 	repository, err := InitRepositories(ctx)
 	if err != nil {
