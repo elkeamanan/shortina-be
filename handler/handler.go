@@ -2,6 +2,7 @@ package handler
 
 import (
 	linkService "elkeamanan/shortina/internal/link/service"
+	userService "elkeamanan/shortina/internal/user/service"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,12 +11,14 @@ import (
 type Server struct {
 	router      *mux.Router
 	linkService linkService.LinkService
+	userService userService.UserService
 }
 
-func NewServer(muxServer *mux.Router, linkService linkService.LinkService) *Server {
+func NewServer(muxServer *mux.Router, linkService linkService.LinkService, userService userService.UserService) *Server {
 	s := &Server{
 		router:      muxServer,
 		linkService: linkService,
+		userService: userService,
 	}
 
 	s.router.Use(logRequest)
@@ -24,6 +27,11 @@ func NewServer(muxServer *mux.Router, linkService linkService.LinkService) *Serv
 	s.router.HandleFunc("/", s.handlerHelloWorld).Methods("GET")
 	s.router.HandleFunc("/link", s.handlerStoreLink).Methods("POST", "OPTIONS")
 	s.router.HandleFunc("/link/{key}", s.handlerGetLinkRedirection).Methods("GET")
+
+	s.router.HandleFunc("/users/register", s.handlerRegisterUser).Methods("POST")
+	s.router.HandleFunc("/users/login", s.handlerLoginUser).Methods("POST")
+	s.router.HandleFunc("/users/{id}/update", s.handlerUpdateUser).Methods("PATCH")
+	s.router.HandleFunc("/refresh-token", s.handlerRefreshToken).Methods("GET")
 
 	return s
 }

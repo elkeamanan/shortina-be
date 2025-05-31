@@ -11,7 +11,7 @@ import (
 )
 
 func InitServer(serviceContainer ServiceContainer) error {
-	server := handler.NewServer(mux.NewRouter(), serviceContainer.LinkService)
+	server := handler.NewServer(mux.NewRouter(), serviceContainer.LinkService, serviceContainer.UserService)
 
 	port := config.Cfg.HttpPort
 	log.Info(fmt.Sprintf("Server is listening on port %d", port))

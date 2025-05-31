@@ -5,10 +5,12 @@ import (
 	"elkeamanan/shortina/cmd/storage"
 	"elkeamanan/shortina/config"
 	linkRepository "elkeamanan/shortina/internal/link/repository"
+	userRepository "elkeamanan/shortina/internal/user/repository"
 )
 
 type RepositoryContainer struct {
-	LinkRepostitory linkRepository.LinkRepository
+	LinkRepository linkRepository.LinkRepository
+	UserRepository userRepository.UserRepository
 }
 
 func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
@@ -29,7 +31,9 @@ func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
 	}
 
 	linkRepo := linkRepository.NewLinkRepository(st)
+	userRepo := userRepository.NewUserRepository(st)
 	return &RepositoryContainer{
-		LinkRepostitory: linkRepo,
+		LinkRepository: linkRepo,
+		UserRepository: userRepo,
 	}, nil
 }
