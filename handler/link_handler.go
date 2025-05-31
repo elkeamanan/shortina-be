@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	actorUserId, _ := ctx.Value(XAuthorizedUserIDHeaderKey).(string)
 	req := &linkDomain.StoreLinkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -19,7 +21,13 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.linkService.StoreLink(ctx, req)
+	parsedActorUserId, _ := uuid.Parse(actorUserId)
+	var createdBy *uuid.UUID
+	if parsedActorUserId != uuid.Nil {
+		createdBy = &parsedActorUserId
+	}
+
+	err = s.linkService.StoreLink(ctx, req, createdBy)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to store link with err: %s", err.Error()), http.StatusInternalServerError)
 		return

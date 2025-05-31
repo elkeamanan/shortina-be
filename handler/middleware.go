@@ -74,7 +74,7 @@ func optionalAuthVerifier(next http.Handler) http.Handler {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := domain.VerifyToken(tokenString)
 		if err != nil {
-			next.ServeHTTP(w, r)
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 

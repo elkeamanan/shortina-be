@@ -4,6 +4,8 @@ import (
 	"context"
 	linkDomain "elkeamanan/shortina/internal/link/domain"
 	"elkeamanan/shortina/internal/link/repository"
+
+	"github.com/google/uuid"
 )
 
 type linkService struct {
@@ -14,12 +16,12 @@ func NewLinkService(linkRepository repository.LinkRepository) LinkService {
 	return &linkService{linkRepository: linkRepository}
 }
 
-func (s *linkService) StoreLink(ctx context.Context, request *linkDomain.StoreLinkRequest) error {
+func (s *linkService) StoreLink(ctx context.Context, request *linkDomain.StoreLinkRequest, actor *uuid.UUID) error {
 	if err := request.Validate(); err != nil {
 		return err
 	}
 
-	return s.linkRepository.StoreLink(ctx, request.ToLink())
+	return s.linkRepository.StoreLink(ctx, request.ToNewLink(actor))
 }
 
 func (s *linkService) GetLinkRedirection(ctx context.Context, request *linkDomain.GetLinkRedirectionRequest) (*linkDomain.GetLinkRedirectionResponse, error) {

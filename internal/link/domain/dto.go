@@ -27,11 +27,13 @@ func (req *StoreLinkRequest) Validate() error {
 	return nil
 }
 
-func (req *StoreLinkRequest) ToLink() *Link {
+func (req *StoreLinkRequest) ToNewLink(createdBy *uuid.UUID) *Link {
 	return &Link{
 		ID:          uuid.New(),
 		Key:         req.Key,
 		Redirection: req.Redirection,
+		Status:      LinkStatusActive,
+		CreatedBy:   createdBy,
 	}
 }
 
