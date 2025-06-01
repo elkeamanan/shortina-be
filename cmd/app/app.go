@@ -17,17 +17,23 @@ func Run() int {
 		return 1
 	}
 
+	log.Info("successfully init config")
+
 	repository, err := InitRepositories(ctx)
 	if err != nil {
 		log.Error(err.Error())
 		return 1
 	}
 
+	log.Info("successfully init repositories")
+
 	service, err := InitServices(repository)
 	if err != nil {
 		log.Error(err.Error())
 		return 1
 	}
+
+	log.Info("successfully init services")
 
 	err = InitServer(service)
 	if err != nil {

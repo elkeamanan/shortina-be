@@ -6,6 +6,8 @@ import (
 	linkRepository "elkeamanan/shortina/internal/link/repository"
 	userRepository "elkeamanan/shortina/internal/user/repository"
 	"elkeamanan/shortina/storage/postgres"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type RepositoryContainer struct {
@@ -39,6 +41,8 @@ func InitRepositories(ctx context.Context) (*RepositoryContainer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("successfully init database")
 
 	linkRepo := linkRepository.NewLinkRepository(st)
 	userRepo := userRepository.NewUserRepository(st)
