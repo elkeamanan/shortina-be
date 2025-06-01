@@ -36,6 +36,9 @@ COPY --from=builder /app/storage/postgres/migrations ./storage/postgres/migratio
 # Copy any other necessary files (config, templates, etc.)
 # COPY --from=builder /app/config ./config/
 
+RUN mkdir -p ./certs
+COPY --from=builder /app/ssl-root-cert.pem ./certs/ssl-root-cert.pem
+
 # Copy environment variable
 ARG ENV
 RUN test -n "$ENV" || (echo "ERROR: ENV build argument is required. Use --build-arg ENV=staging or ENV=release" && exit 1)
