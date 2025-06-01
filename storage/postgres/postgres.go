@@ -77,6 +77,9 @@ func (c DatabaseConfig) Validate() error {
 	if c.RunMigration && c.MigrationsPath == "" {
 		return errors.New("migration config: migrations path is required")
 	}
+	if c.SSLMode != "disabled" && c.SSLRootCert == "" {
+		return errors.New("ssl root cert is required")
+	}
 	return nil
 }
 
