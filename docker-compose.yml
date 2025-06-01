@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -35,27 +35,13 @@ services:
       retries: 3
 
   # Go Web Server
-  # TODO: securely store env variables for deployemnt
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        ENV: docker-local
     container_name: shortina-app
-    environment:
-      - ENVIRONMENT=local
-      - SERVICE_REGION=ap-southeast-1
-      - DB_RUN_MIGRATION=true
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=password
-      - DB_NAME=shortina
-      - DB_SSL_MODE=disable
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - DB_MIGRATION_PATH=storage/postgres/migrations
-      - ENABLE_LOADING_SECRET=false
-      - TOKEN_SECRET_KEY=some-token-secret-key
     ports:
       - "8080:8080"
     depends_on:

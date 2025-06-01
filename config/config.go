@@ -52,11 +52,11 @@ type Config struct {
 	IsEnableLoadingSecret bool `env:"ENABLE_LOADING_SECRET" envDefault:"false"`
 
 	Database struct {
-		Host       string `env:"DB_HOST" envDefault:"localhost"`
-		Port       int    `env:"DB_PORT" envDefault:"5433"`
+		Host       string `env:"DB_HOST" secret:"SHORTINA_DB_HOST"`
+		Port       int    `env:"DB_PORT" envDefault:"5432"`
 		DBName     string `env:"DB_NAME" envDefault:"shortina"`
-		Username   string `env:"DB_USERNAME"`
-		Password   string `env:"DB_PASSWORD"`
+		Username   string `env:"DB_USERNAME" secret:"SHORTINA_DB_USERNAME"`
+		Password   string `env:"DB_PASSWORD" secret:"SHORTINA_DB_PASSWORD"`
 		Connection struct {
 			PingTimeout  time.Duration `env:"DB_TIMEOUT" envDefault:"5s"`
 			MaxIdleTime  time.Duration `env:"DB_MAX_IDLE_TIME" envDefault:"2m"`
@@ -75,7 +75,7 @@ type Config struct {
 	}
 
 	Redis struct {
-		Host string `env:"REDIS_HOST" envDefault:"localhost"`
+		Host string `env:"REDIS_HOST" secret:"SHORTINA_REDIS_HOST"`
 		Port int    `env:"REDIS_PORT" envDefault:"6379"`
 	}
 
