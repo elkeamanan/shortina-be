@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"elkeamanan/shortina/internal/user/domain"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -46,14 +47,22 @@ func authVerifier(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get(AuthorizationHeaderKey)
 		if authHeader == "" {
-			http.Error(w, "No authorization header", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorResponse{
+				ErrorCode: 500,
+				Message:   "Authorization header is required",
+			})
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := domain.VerifyToken(tokenString)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(ErrorResponse{
+				ErrorCode: 401,
+				Message:   "Invalid token",
+			})
 			return
 		}
 
@@ -74,7 +83,11 @@ func optionalAuthVerifier(next http.Handler) http.Handler {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := domain.VerifyToken(tokenString)
 		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(ErrorResponse{
+				ErrorCode: 401,
+				Message:   "Invalid token",
+			})
 			return
 		}
 

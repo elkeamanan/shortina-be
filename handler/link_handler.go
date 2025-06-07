@@ -19,7 +19,11 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 	req := &linkDomain.StoreLinkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   fmt.Sprintf("failed to decode request with err: %s", err.Error()),
+		})
 		return
 	}
 
@@ -31,7 +35,11 @@ func (s *Server) handlerStoreLink(w http.ResponseWriter, r *http.Request) {
 
 	err = s.linkService.StoreLink(ctx, req, createdBy)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to store link with err: %s", err.Error()), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to store link with err: %s", err.Error()),
+		})
 		return
 	}
 
@@ -44,14 +52,32 @@ func (s *Server) handlerGetLinkRedirection(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	vars := mux.Vars(r)
 	key := vars["key"]
+
+	if key == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   "key param is required",
+		})
+		return
+	}
+
 	redirection, err := s.linkService.GetLinkRedirection(ctx, key)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to get link redirection with err: %s", err.Error()),
+		})
 		return
 	}
 
 	if redirection == "" {
-		http.Error(w, fmt.Sprintf("redirection is not found with identifier %s", key), http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 404,
+			Message:   fmt.Sprintf("redirection is not found with identifier %s", key),
+		})
 		return
 	}
 
@@ -62,28 +88,41 @@ func (s *Server) handlerGetLinkRedirection(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	jsonData, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to marshal response with err: %s", err.Error()),
+		})
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 
 func (s *Server) handlerGetLinks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	actorUserId, _ := ctx.Value(XAuthorizedUserIDHeaderKey).(string)
-	statusFilter := r.URL.Query().Get("status")
 
+	if actorUserId == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   "invalid user id from token",
+		})
+		return
+	}
+
+	statusFilter := r.URL.Query().Get("status")
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
 
 	if page == 0 || pageSize == 0 {
-		http.Error(w, "wrong pagination request, cannot be zero", http.StatusBadRequest)
-		return
-	}
-
-	if actorUserId == "" {
-		http.Error(w, "missing user id", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   "wrong pagination request, cannot be zero",
+		})
 		return
 	}
 
@@ -95,7 +134,11 @@ func (s *Server) handlerGetLinks(w http.ResponseWriter, r *http.Request) {
 			CurrentPage: uint32(pageSize),
 		})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to get links with err: %s", err.Error()),
+		})
 		return
 	}
 
@@ -107,10 +150,15 @@ func (s *Server) handlerGetLinks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	jsonData, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to marshal response with err: %s", err.Error()),
+		})
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 
@@ -119,11 +167,24 @@ func (s *Server) handlerGetLink(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   "id param is required",
+		})
+		return
+	}
+
 	actorUserId, _ := ctx.Value(XAuthorizedUserIDHeaderKey).(string)
 	parsedActorUserId, _ := uuid.Parse(actorUserId)
 
 	if parsedActorUserId == uuid.Nil {
-		http.Error(w, "invalid user id", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   "invalid user id from token",
+		})
 		return
 	}
 
@@ -131,12 +192,20 @@ func (s *Server) handlerGetLink(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to get link with err: %s", err.Error()),
+		})
 		return
 	}
 
 	if link == nil {
-		http.Error(w, "link is not found", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 404,
+			Message:   fmt.Sprintf("link with id %s is not found", id),
+		})
 		return
 	}
 
@@ -146,17 +215,26 @@ func (s *Server) handlerGetLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if linkCreatedBy != actorUserId {
-		http.Error(w, "cannot access link that are not created by current user", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 403,
+			Message:   "cannot access link that are not created by current user",
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	jsonData, err := json.Marshal(link)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to marshal response with err: %s", err.Error()),
+		})
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
 }
 
@@ -168,7 +246,11 @@ func (s *Server) handlerUpdateLink(w http.ResponseWriter, r *http.Request) {
 	req := &linkDomain.UpdateLinkRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 400,
+			Message:   fmt.Sprintf("failed to decode request with err: %s", err.Error()),
+		})
 		return
 	}
 
@@ -178,12 +260,20 @@ func (s *Server) handlerUpdateLink(w http.ResponseWriter, r *http.Request) {
 		ID: id,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to get link with err: %s", err.Error()),
+		})
 		return
 	}
 
 	if link == nil {
-		http.Error(w, "link is not found", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("link with id %s is not found", id),
+		})
 		return
 	}
 
@@ -193,7 +283,11 @@ func (s *Server) handlerUpdateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if linkCreatedBy != actorUserId {
-		http.Error(w, "cannot access link that are not created by current user", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 403,
+			Message:   "cannot access link that are not created by current user",
+		})
 		return
 	}
 
@@ -204,7 +298,11 @@ func (s *Server) handlerUpdateLink(w http.ResponseWriter, r *http.Request) {
 	}, linkDomain.LinkPredicate{ID: id})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to update link with err: %s", err.Error()), http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{
+			ErrorCode: 500,
+			Message:   fmt.Sprintf("failed to update link with err: %s", err.Error()),
+		})
 		return
 	}
 
